@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mehrstufiges Formular – HTML & CSS (ohne JS)</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' 'unsafe-inline';
+                 script-src 'unsafe-inline' 'self' https://cdn.jsdelivr.net/npm/@open-iframe-resizer/;
+                 style-src 'self' 'unsafe-inline';" />
+  </head>
+
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121836;
+      --ink: #e6e8ff;
+      --muted: #aab1ff;
+      --brand: #6b8bff;
+      --brand-2: #5ad1ff;
+      --ok: #2ecc71;
+      --danger: #ff6b6b;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--ink);
+      background: radial-gradient(1200px 1200px at 80% -10%, rgba(90, 209, 255, .12), transparent 60%) var(--bg);
+    }
+
+    .shell {
+      max-width: 860px;
+      margin: min(6vh, 60px) auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.06);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 20px 22px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    header h1 { font-size: 1.25rem; margin: 0 0 6px; }
+    header p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+    /* Hidden radios drive the stepper */
+    input.step-toggle { position: absolute; left: -9999px; }
+
+    /* Progress bar */
+    .progress {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 16px 18px 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    }
+    .progress .dot {
+      position: relative;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.02);
+      user-select: none;
+      transition: border-color .2s ease, background .2s ease;
+      cursor: default;
+    }
+    .dot .num {
+      width: 28px; height: 28px; border-radius: 999px;
+      display: grid; place-items: center;
+      border: 2px solid rgba(255,255,255,.2);
+      font-weight: 700; color: var(--muted);
+      background: rgba(255,255,255,.02);
+    }
+    .dot .label { color: var(--muted); font-weight: 600; letter-spacing: .2px; }
+
+    /* Active states via :has() (progressive enhancement) */
+    form:has(#step-1:checked) .dot[data-step="1"],
+    form:has(#step-2:checked) .dot[data-step="2"],
+    form:has(#step-3:checked) .dot[data-step="3"] {
+      border-style: solid;
+      border-color: color-mix(in oklab, var(--brand) 60%, white 10%);
+      background: linear-gradient(180deg, rgba(107,139,255,.18), rgba(107,139,255,.06));
+    }
+    form:has(#step-1:checked) .dot[data-step="1"] .num,
+    form:has(#step-2:checked) .dot[data-step="2"] .num,
+    form:has(#step-3:checked) .dot[data-step="3"] .num {
+      border-color: transparent;
+      color: white;
+      background: radial-gradient(150% 150% at 30% 20%, var(--brand), var(--brand-2));
+    }
+    form:has(#step-1:checked) .dot[data-step="1"] .label,
+    form:has(#step-2:checked) .dot[data-step="2"] .label,
+    form:has(#step-3:checked) .dot[data-step="3"] .label { color: white; }
+
+    /* Steps */
+    .steps { padding: 10px 18px 6px; }
+    fieldset {
+      margin: 0; padding: 22px; border: none; border-top: 1px solid rgba(255,255,255,.06);
+      display: none;
+    }
+    #step-1:checked ~ .steps #s1,
+    #step-2:checked ~ .steps #s2,
+    #step-3:checked ~ .steps #s3 { display: block; }
+
+    legend { font-weight: 700; margin-bottom: 12px; }
+
+    .grid {
+      display: grid; gap: 14px; grid-template-columns: repeat(12, 1fr);
+    }
+    .col-6 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"], select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.16);
+      color: var(--ink);
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: #cdd2ff88; }
+
+    .nav {
+      display: flex; gap: 10px; justify-content: space-between;
+      border-top: 1px dashed rgba(255,255,255,.16);
+      padding-top: 16px; margin-top: 10px;
+    }
+
+    .btn {
+      appearance: none; border: none; cursor: pointer; font-weight: 700;
+      padding: 12px 18px; border-radius: 14px; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,.08);
+      color: var(--ink);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .btn.primary {
+      background: linear-gradient(180deg, rgba(107,139,255,.28), rgba(107,139,255,.12));
+      border-color: color-mix(in oklab, var(--brand) 55%, white 15%);
+    }
+    .btn.success {
+      background: linear-gradient(180deg, rgba(46,204,113,.28), rgba(46,204,113,.12));
+      border-color: color-mix(in oklab, var(--ok) 55%, white 15%);
+    }
+
+    /* Make <label> act as nav buttons for radios */
+    .as-label { cursor: pointer; }
+
+    /* Summary box */
+    .summary {
+      padding: 14px; border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      font-size: .95rem; color: var(--muted);
+    }
+
+    footer {
+      padding: 20px 22px; background: linear-gradient(180deg, transparent, rgba(255,255,255,.03));
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+
+    /* Mobile */
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: repeat(6, 1fr); }
+      .col-6, .col-12 { grid-column: span 6; }
+      .progress { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script
+  type="module"
+  src="https://cdn.jsdelivr.net/npm/@open-iframe-resizer/core@1.6.0/dist/index.js"
+></script>
+
+</head>
+<body>
+  <div class="shell">
+    <div class="card">
+      <form action="#" method="post" novalidate>
+        <header>
+          <h1>Mehrstufiges Formular</h1>
+          <p>Reines HTML & CSS – Navigation über Radiobuttons, keine Skripte. Ideal für Demos & Tests.</p>
+        </header>
+
+        <!-- Step toggles (hidden) -->
+        <input class="step-toggle" type="radio" name="step" id="step-1" checked>
+        <input class="step-toggle" type="radio" name="step" id="step-2">
+        <input class="step-toggle" type="radio" name="step" id="step-3">
+
+        <!-- Progress -->
+        <div class="progress" aria-hidden="true">
+          <div class="dot" data-step="1"><div class="num">1</div><div class="label">Basisdaten</div></div>
+          <div class="dot" data-step="2"><div class="num">2</div><div class="label">Adresse</div></div>
+          <div class="dot" data-step="3"><div class="num">3</div><div class="label">Prüfen & Absenden</div></div>
+        </div>
+
+        <!-- Steps -->
+        <div class="steps">
+          <fieldset id="s1">
+            <legend>Basisdaten</legend>
+            <div class="grid">
+              <div class="col-6">
+                <label for="vorname">Vorname</label>
+                <input id="vorname" name="vorname" type="text" placeholder="z. B. Alex" required>
+              </div>
+              <div class="col-6">
+                <label for="nachname">Nachname</label>
+                <input id="nachname" name="nachname" type="text" placeholder="z. B. Müller" required>
+              </div>
+              <div class="col-12">
+                <label for="email">E‑Mail</label>
+                <input id="email" name="email" type="email" placeholder="du@example.com" required>
+              </div>
+              <div class="col-12">
+                <label for="telefon">Telefon (optional)</label>
+                <input id="telefon" name="telefon" type="tel" placeholder="+41 79 123 45 67">
+              </div>
+            </div>
+            <div class="nav">
+              <span></span>
+              <label class="btn primary as-label" for="step-2">Weiter →</label>
+            </div>
+          </fieldset>
+
+          <fieldset id="s2">
+            <legend>Adresse</legend>
+            <div class="grid">
+              <div class="col-12">
+                <label for="strasse">Straße & Nr.</label>
+                <input id="strasse" name="strasse" type="text" placeholder="Musterstraße 1" required>
+              </div>
+              <div class="col-6">
+                <label for="plz">PLZ</label>
+                <input id="plz" name="plz" type="text" placeholder="8000" required>
+              </div>
+              <div class="col-6">
+                <label for="ort">Ort</label>
+                <input id="ort" name="ort" type="text" placeholder="Zürich" required>
+              </div>
+              <div class="col-6">
+                <label for="ort">Ort</label>
+                <input id="ort" name="ort" type="text" placeholder="Zürich" required>
+              </div>
+              <div class="col-6">
+                <label for="ort">Ort</label>
+                <input id="ort" name="ort" type="text" placeholder="Zürich" required>
+              </div>
+              <div class="col-6">
+                <label for="ort">Ort</label>
+                <input id="ort" name="ort" type="text" placeholder="Zürich" required>
+              </div>
+              <div class="col-6">
+                <label for="ort">Ort</label>
+                <input id="ort" name="ort" type="text" placeholder="Zürich" required>
+              </div>
+              <div class="col-12">
+                <label for="land">Land</label>
+                <select id="land" name="land" required>
+                  <option value="">Bitte wählen…</option>
+                  <option>Schweiz</option>
+                  <option>Deutschland</option>
+                  <option>Österreich</option>
+                  <option>Liechtenstein</option>
+                </select>
+              </div>
+            </div>
+            <div class="nav">
+              <label class="btn as-label" for="step-1">← Zurück</label>
+              <label class="btn primary as-label" for="step-3">Weiter →</label>
+            </div>
+          </fieldset>
+
+          <fieldset id="s3">
+            <legend>Prüfen & Absenden</legend>
+            <p class="summary">
+              Tipp: In einem echten Projekt würdest du hier eine Zusammenfassung der eingegebenen Daten anzeigen. Ohne JavaScript geht das rein statisch; für eine echte Live‑Zusammenfassung bräuchte man etwas JS.
+            </p>
+
+            <label style="display:flex; align-items:center; gap:10px; margin-top: 8px;">
+              <input type="checkbox" name="agb" required>
+              <span>Ich akzeptiere die AGB.</span>
+            </label>
+
+            <div class="nav">
+              <label class="btn as-label" for="step-2">← Zurück</label>
+              <button class="btn success" type="submit">Absenden ✅</button>
+            </div>
+          </fieldset>
+        </div>
+
+        <footer>
+          <small>Demo: Nur HTML & CSS. <code>:has()</code> wird zur Hervorhebung des aktiven Schritts verwendet.</small>
+          <small>Barrierefreiheit: Feldgruppen via <code>&lt;fieldset&gt;</code>/<code>&lt;legend&gt;</code>.</small>
+        </footer>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
