@@ -1,0 +1,9 @@
+#paging-wrapper {
+  text-align: center;
+}
+#paging-controls {
+  display: inline-block;
+}
+#paging-numbers {
+  margin: 0 10px;
+}

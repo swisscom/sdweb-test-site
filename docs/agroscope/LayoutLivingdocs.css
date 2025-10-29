@@ -1,0 +1,80 @@
+html {
+  overflow-y: auto;
+}
+.tab__control a {
+  text-decoration: none;
+}
+.clearfix:after {
+  display: block;
+  content: "";
+  clear: both;
+}
+.pull-left {
+  float: left;
+}
+.pull-right {
+  float: right;
+}
+figure {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+figure.pull-left {
+  margin-right: 1rem;
+}
+figure.pull-right {
+  margin-left: 1rem;
+}
+.mod {
+  margin-bottom: 2rem;
+}
+.mod.mod-text {
+  margin-bottom: 0;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-group.form-group-inline {
+  display: flex;
+  gap: 1rem;
+}
+.field-validation-error {
+  color: var(--color-primary-800);
+}
+.collapse {
+  display: none;
+}
+.btn--base.pull-right {
+  width: auto;
+}
+svg.icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.btn--base svg.icon,
+a svg.icon {
+  margin-right: 0.25rem;
+}
+.publikation-title,
+.publikation-download-title,
+.publikation-download-sprachvariante {
+  display: flex;
+  align-items: center;
+}
+.publikation-title + br,
+.publikation-download-title + br,
+.publikation-download-sprachvariante + br {
+  display: none;
+}
+.publikation-sprachvarianten {
+  display: flex;
+  align-items: center;
+}
+.ira-like,
+#ira-kommentar-liste-header {
+  display: flex !important;
+}
+.ira-like .form-group-order,
+#ira-kommentar-liste-header .form-group-order {
+  margin-left: auto;
+}
